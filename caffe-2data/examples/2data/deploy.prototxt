@@ -1,0 +1,52 @@
+name: "2DATA"
+
+input: "data"
+input_dim: 1
+input_dim: 3
+input_dim: 32
+input_dim: 32
+
+#1st conv -------------------
+layer { bottom: 'data' top: 'conv1_1' name: 'conv1_1' type: "Convolution"
+  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
+  convolution_param { engine: CAFFE num_output: 32 pad: 1 kernel_size: 3 
+  } }
+layer { bottom: 'conv1_1' top: 'conv1_1' name: 'relu1_1' type: "ReLU" }
+layer { name: 'pool1' bottom: 'conv1_1' top: 'pool1' type: "Pooling"
+  pooling_param { pool: MAX kernel_size: 2 stride: 2 } }
+
+#upscale
+layer{	name: "fc1" type: "InnerProduct" bottom: "pool1" top: "fc1"
+	param{ lr_mult:1 decay_mult: 1} param{ lr_mult: 2 decay_mult: 0}
+	inner_product_param{ num_output: 3072
+	}}
+
+#reshape
+layer{name: "reconst1" type: "Reshape" bottom: "fc1" top: "reconst1"
+	reshape_param{ shape{ dim:0 dim:3 dim:32 dim:32} } }
+
+#2nd convolution ---------------------------------
+layer { name: 'conv2_1' bottom: 'reconst1' top: 'conv2_1' type: "Convolution"
+  param { lr_mult: 1 decay_mult: 1 } param { lr_mult: 2 decay_mult: 0}
+  convolution_param { engine: CAFFE num_output: 32 pad: 2 kernel_size: 5 
+  } }
+layer { bottom: 'conv2_1' top: 'conv2_1' name: 'relu2_1' type: "ReLU" }
+layer { bottom: 'conv2_1' top: 'pool2' name: 'pool2' type: "Pooling"
+  pooling_param { pool: MAX kernel_size: 2 stride: 2 } }
+
+#upscale
+layer{	name: "fc2" type: "InnerProduct" bottom: "pool2" top: "fc2"
+	param{ lr_mult:1 decay_mult: 1} param{ lr_mult: 2 decay_mult: 0}
+	inner_product_param{ num_output: 3072
+	}}
+
+#reshape
+layer{name: "reconst2" type: "Reshape" bottom: "fc2" top: "reconst2"
+	reshape_param{ shape{ dim:0 dim:3 dim:32 dim:32} } }
+
+
+
+
+
+
+
